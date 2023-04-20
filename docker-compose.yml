@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  web:
+    build: .
+    container_name: payhere
+    platform: linux/x86_64
+    command: python manage.py runserver 0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    restart: always
+  db:
+    image: mysql:5.7
+    container_name: for_mysql
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    restart: always
+    environment:
+      - MYSQL_DB=payhere
+      - MYSQL_USER=jisoochoi
+      - MYSQL_PASSWORD=jisoochoi
+      - MYSQL_ROOT_PASSWORD=jisoochoi
+
+volumes:
+  mysql-data:
