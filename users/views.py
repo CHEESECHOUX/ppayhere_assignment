@@ -2,13 +2,17 @@ import json
 import bcrypt
 import jwt
 
+from datetime import datetime, timedelta
+
 from django.views import View
 from django.http import JsonResponse
 from json.decoder import JSONDecodeError
-from datetime import datetime, timedelta
 from django.conf import settings
+
 from users.validation import phone_validate, password_validate
 from users.models import User
+from users.login_decorator import login_decorator
+from django.contrib.auth import logout
 
 
 class SignUpView(View):
@@ -62,3 +66,10 @@ class LoginView(View):
             return JsonResponse({'message': '사용자가 존재하지 않습니다'}, status=404)
         except KeyError:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+
+
+class LogoutView(View):
+    @login_decorator
+    def post(self, request):
+        logout(request)
+        return JsonResponse({'message': '로그아웃 되었습니다'}, status=200)
