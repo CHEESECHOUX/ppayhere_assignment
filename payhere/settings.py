@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'users',
     'core',
     'django.contrib.auth',
+    'products',
 ]
 
 MIDDLEWARE = [
