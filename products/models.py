@@ -12,6 +12,7 @@ class Product(TimeStampModel):
     price = models.DecimalField(max_digits=8, decimal_places=2)
     const = models.DecimalField(max_digits=8, decimal_places=2)
     name = models.CharField(max_length=50)
+    chosung = models.CharField(max_length=100)
     description = models.CharField(max_length=1000)
     barcode = models.CharField(max_length=15)
     expiration_date = models.DateTimeField()
