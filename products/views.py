@@ -49,7 +49,7 @@ class ProductListView(generics.ListAPIView):
         if queryset:
             next_cursor = queryset.last().id
             response_data = {
-                'meat': {'code': status.HTTP_200_OK, 'message': '200_OK'},
+                'meta': {'code': status.HTTP_200_OK, 'message': '200_OK'},
                 'data': serializer.data,
                 'next_cursor': next_cursor
             }
@@ -72,6 +72,39 @@ class ProductDetailView(generics.RetrieveAPIView):
             'meta': {'code': status.HTTP_200_OK, 'message': '200_OK'},
             'data': serializer.data
         })
+
+
+class ProductSearchView(generics.ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        cursor = self.request.GET.get('cursor', 0)  # cursor = 0
+        limit = Product.objects.count()
+        keyword = self.request.GET.get('keyword', '')
+
+        products = Product.objects.filter(name__icontains=keyword).filter(
+            id__gt=cursor).order_by('id')[:limit]
+
+        product_ids = [int(p.id) for p in products]
+        return Product.objects.filter(id__in=product_ids).order_by('id')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        if queryset:
+            next_cursor = queryset.last().id
+            response_data = {
+                'meta': {'code': status.HTTP_200_OK, 'message': '200_OK'},
+                'data': serializer.data,
+                'next_cursor': next_cursor
+            }
+            return Response(response_data)
+        else:
+            return Response({
+                'meta': {'code': status.HTTP_404_NOT_FOUND, 'message': '해당 키워드에 맞는 상품이 존재하지 않습니다'}
+            })
 
 
 class ProductUpdateView(generics.UpdateAPIView):
