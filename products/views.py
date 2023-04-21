@@ -49,13 +49,29 @@ class ProductListView(generics.ListAPIView):
         if queryset:
             next_cursor = queryset.last().id
             response_data = {
-                'meat': {'code': status.HTTP_200_OK},
+                'meat': {'code': status.HTTP_200_OK, 'message': '200_OK'},
                 'data': serializer.data,
                 'next_cursor': next_cursor
             }
             return Response(response_data)
+        else:
+            return Response({
+                'meta': {'code': status.HTTP_404_NOT_FOUND, 'message': '404_NOT_FOUND_ERROR'}
+            })
 
-        return Response({'meta': {'code': status.HTTP_404_NOT_FOUND}})
+
+class ProductDetailView(generics.RetrieveAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    lookup_field = 'pk'
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.serializer_class(instance)
+        return Response({
+            'meta': {'code': status.HTTP_200_OK, 'message': '200_OK'},
+            'data': serializer.data
+        })
 
 
 class ProductUpdateView(generics.UpdateAPIView):
