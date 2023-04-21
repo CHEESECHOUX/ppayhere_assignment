@@ -14,9 +14,25 @@ class ProductCreateView(generics.CreateAPIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    'meta': {
+                        'code': status.HTTP_201_CREATED,
+                        'message': '상품 정보가 등록되었습니다'
+                    },
+                    'data': serializer.data
+                }
+            )
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    'meta': {
+                        'code': status.HTTP_400_BAD_REQUEST,
+                        'message': '상품 정보를 다시 확인해주세요'
+                    },
+                    'data': None
+                }
+            )
 
 
 class ProductUpdateView(generics.UpdateAPIView):
@@ -31,6 +47,41 @@ class ProductUpdateView(generics.UpdateAPIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response({'meta': {'code': status.HTTP_200_OK, 'message': '상품 정보가 수정되었습니다'}, 'data': serializer.data}, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    'meta': {
+                        'code': status.HTTP_200_OK,
+                        'message': '상품 정보가 수정되었습니다'
+                    },
+                    'data': serializer.data
+                }
+            )
         else:
-            return Response({'meta': {'code': status.HTTP_400_BAD_REQUEST, 'message': '상품 정보를 다시 확인해주세요'}, 'data': None}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    'meta': {
+                        'code': status.HTTP_400_BAD_REQUEST,
+                        'message': '상품 정보를 다시 확인해주세요'
+                    },
+                    'data': None
+                },
+            )
+
+
+class ProductDeleteView(generics.DestroyAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    lookup_field = 'pk'
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.delete()
+        return Response(
+            {
+                'meta': {
+                    'code': status.HTTP_200_OK,
+                    'message': '상품 정보가 삭제되었습니다'
+                },
+                'data': None
+            }
+        )
