@@ -1,7 +1,9 @@
+from functools import reduce
+import operator
 from rest_framework import generics, status
 from rest_framework.response import Response
 from django.db.models.functions import Cast
-from django.db.models import CharField
+from django.db.models import CharField, Q
 
 from .models import Product
 from .serializers import ProductSerializer
@@ -79,12 +81,17 @@ class ProductSearchView(generics.ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        cursor = self.request.GET.get('cursor', 0)  # cursor = 0
+        cursor = self.request.GET.get('cursor', 0)
         limit = Product.objects.count()
         keyword = self.request.GET.get('keyword', '')
 
-        products = Product.objects.filter(name__icontains=keyword).filter(
-            id__gt=cursor).order_by('id')[:limit]
+        if not keyword:
+            return Product.objects.none()
+
+        products = Product.objects.filter(
+            reduce(operator.and_, (Q(name__icontains=x)
+                   for x in keyword.split()))
+        ).filter(id__gt=cursor).order_by('id')[:limit]
 
         product_ids = [int(p.id) for p in products]
         return Product.objects.filter(id__in=product_ids).order_by('id')
