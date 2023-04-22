@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from django.db.models.functions import Cast
 from django.db.models import CharField, Q
 from django.db import transaction
-from django.http import JsonResponse
 
 from products.models import Product, Category, ProductSize
 from products.serializers import ProductSerializer

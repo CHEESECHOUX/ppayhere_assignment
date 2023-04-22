@@ -36,12 +36,12 @@ class SignUpView(View):
                 password=hashed_password,
             )
 
-            return JsonResponse({'message': '회원가입 완료'}, status=201)
+            return JsonResponse({'meta': {'code': 201, 'message': '회원가입 완료'}, 'data': data})
 
         except KeyError:
-            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+            return JsonResponse({'meta': {'code': 400, 'message': 'KEY_ERROR'}})
         except JSONDecodeError:
-            return JsonResponse({'message': 'JSON_DECODE_ERROR'}, status=400)
+            return JsonResponse({'meta': {'code': 400, 'message': 'JSON_DECODE_ERROR'}})
 
 
 class LoginView(View):
@@ -58,18 +58,18 @@ class LoginView(View):
             )
 
             if not bcrypt.checkpw(data['password'].encode('utf-8'), hashed_password):
-                return JsonResponse({'message': '비밀번호를 다시 입력해주세요'}, status=401)
+                return JsonResponse({'meta': {'code': 401, 'message': '비밀번호를 다시 입력해주세요'}})
 
-            return JsonResponse({'message': '로그인 성공', 'token': access_token}, status=200)
+            return JsonResponse({'meta': {'code': 200, 'message': '로그인 성공', 'token': access_token}, 'data': data})
 
         except User.DoesNotExist:
-            return JsonResponse({'message': '사용자가 존재하지 않습니다'}, status=404)
+            return JsonResponse({'meta': {'code': 404, 'message': '사용자가 존재하지 않습니다'}})
         except KeyError:
-            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+            return JsonResponse({'meta': {'code': 400, 'message': 'KEY_ERROR'}})
 
 
 class LogoutView(View):
     @login_decorator
     def post(self, request):
         logout(request)
-        return JsonResponse({'message': '로그아웃 되었습니다'}, status=200)
+        return JsonResponse({'meta': {'code': 200, 'message': '로그아웃 되었습니다'}})
