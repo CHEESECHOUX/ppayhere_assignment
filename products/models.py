@@ -1,7 +1,6 @@
 from django.db import models
 from core.models import TimeStampModel
 from enum import Enum
-from users.models import User
 
 
 class ProductSize(Enum):

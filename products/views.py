@@ -77,7 +77,7 @@ class ProductListView(generics.ListAPIView):
         if queryset:
             next_cursor = queryset.last().id
             response_data = {
-                'meta': {'code': status.HTTP_200_OK, 'message': '200_OK'},
+                'meta': {'code': status.HTTP_200_OK, 'message': '상품 정보 리스트입니다'},
                 'data': serializer.data,
                 'next_cursor': next_cursor
             }
@@ -98,7 +98,7 @@ class ProductDetailView(generics.RetrieveAPIView):
         instance = self.get_object()
         serializer = self.serializer_class(instance)
         return Response({
-            'meta': {'code': status.HTTP_200_OK, 'message': '200_OK'},
+            'meta': {'code': status.HTTP_200_OK, 'message': '입력하신 id값에 해당하는 상품 정보입니다'},
             'data': serializer.data
         })
 
@@ -130,14 +130,14 @@ class ProductSearchView(generics.ListAPIView):
         if queryset:
             next_cursor = queryset.last().id
             response_data = {
-                'meta': {'code': status.HTTP_200_OK, 'message': '200_OK'},
+                'meta': {'code': status.HTTP_200_OK, 'message': '입력하신 키워드에 해당하는 상품 정보입니다'},
                 'data': serializer.data,
                 'next_cursor': next_cursor
             }
             return Response(response_data)
         else:
             return Response({
-                'meta': {'code': status.HTTP_404_NOT_FOUND, 'message': '해당 키워드에 맞는 상품이 존재하지 않습니다'}
+                'meta': {'code': status.HTTP_404_NOT_FOUND, 'message': '입력하신 키워드에 해당하는 상품이 존재하지 않습니다'}
             })
 
 
@@ -188,7 +188,7 @@ class ProductUpdateView(generics.UpdateAPIView):
     lookup_field = 'pk'
 
     @login_decorator
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.serializer_class(
             instance, data=request.data, partial=True)
