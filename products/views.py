@@ -22,6 +22,8 @@ class ProductCreateView(generics.CreateAPIView):
     @transaction.atomic
     def post(self, request, *args, **kwargs):
         data = request.data.copy()
+        user = request.user
+        data['user_id'] = user.id
         category_name = data.pop('category_name', None)
         size = data.get('size', None)
         if size and size.upper() not in [s.name for s in ProductSize]:
@@ -38,8 +40,9 @@ class ProductCreateView(generics.CreateAPIView):
                         name=category_name)
                     product.category = category
                     product.category_name = category_name
-                    product.save()
                     product.category_id = category.id
+                    product.user_id = user.id
+                    product.save()
                 return Response(
                     {
                         'meta': {'code': status.HTTP_201_CREATED, 'message': '상품 정보가 등록되었습니다'},

@@ -1,6 +1,7 @@
 from django.db import models
 from core.models import TimeStampModel
 from enum import Enum
+from users.models import User
 
 
 class ProductSize(Enum):
@@ -20,7 +21,9 @@ class Product(TimeStampModel):
         size.name, size.value) for size in ProductSize])
     category = models.ForeignKey(
         'Category', on_delete=models.SET_NULL, null=True, blank=True)
-    category_name = models.CharField(max_length=255, null=True, blank=True)
+    category_name = models.CharField(max_length=50, null=True, blank=True)
+    user = models.ForeignKey(
+        'users.User', on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         db_table = 'products'
