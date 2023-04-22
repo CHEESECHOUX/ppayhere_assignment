@@ -1,16 +1,15 @@
 from functools import reduce
 import operator
-import pymysql
+import re
 from rest_framework import generics, status
 from rest_framework.response import Response
-from django.db.models.functions import Cast, Substr
+from django.db.models.functions import Cast
 from django.db.models import CharField, Q
 from django.db import transaction
 from django.http import JsonResponse
 
 from products.models import Product, Category, ProductSize
 from products.serializers import ProductSerializer
-from products.korea_chosung import korea_chosung
 from users.login_decorator import login_decorator
 
 
@@ -145,41 +144,56 @@ class ProductChosungView(generics.ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-    def get(self, request, *args, **kwargs):
-        keyword = request.GET.get('keyword', '')
+    @login_decorator
+    def get_queryset(self, request):
+        cursor = self.request.GET.get('cursor', 0)
+        limit = Product.objects.count()
+        keyword = self.request.GET.get('keyword', '')
+
         if not keyword:
-            return JsonResponse({'message': '상품 이름을 다시 입력하세요'}, status=400)
+            return Product.objects.none()
 
-        conn = pymysql.connect(
-            host='localhost',
-            user='root',
-            password='JisooChoi0206!',
-            db='payhere',
-            charset='utf8'
-        )
-        cursor = conn.cursor()
+        CHOSUNG_LIST = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ',
+                        'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 
-        # fn_choSearch 함수를 호출하여 초성 값을 가져옴
-        cursor.callproc('fn_choSearch', [keyword])
-        result = cursor.fetchone()[0]
+        def get_chosung(word):
+            chosung_word = ''
+            for ch in word:
+                if re.match('.*[ㄱ-ㅎㅏ-ㅣ가-힣]+.*', ch):
+                    chosung = ord(ch) - 44032
+                    chosung = int(chosung / 588)
+                    if chosung < 0 or chosung >= len(CHOSUNG_LIST):
+                        return ''
+                    chosung_word += CHOSUNG_LIST[chosung]
+                else:
+                    chosung_word += ch
+            return chosung_word
 
-        # MySQL 연결 종료
-        cursor.close()
-        conn.close()
+        keyword_chosung = get_chosung(keyword)
 
-        if not result:
-            return JsonResponse({'message': '초성 값을 가져올 수 없습니다'}, status=400)
+        products = Product.objects.filter(
+            reduce(operator.and_, (Q(chosung__icontains=x)for x in keyword.split())))\
+            .filter(id__gt=cursor).order_by('id')[:limit]
 
-        # 가져온 초성 값을 사용하여 상품을 검색
-        chosung_str = result.replace(' ', '')
-        products = Product.objects.annotate(chosung_value=Substr('chosung', 1, len(chosung_str))) \
-                          .filter(chosung_value=chosung_str, name__icontains=keyword)
+        product_ids = [int(p.id) for p in products]
+        return Product.objects.filter(id__in=product_ids).order_by('id')
 
-        if not products:
-            return JsonResponse({'message': '일치하는 상품 이름이 없습니다'}, status=404)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset(request)
+        serializer = self.get_serializer(queryset, many=True)
 
-        serializer = ProductSerializer(products, many=True)
-        return JsonResponse(serializer.data, status=200, safe=False)
+        if queryset:
+            next_cursor = queryset.last().id
+            response_data = {
+                'meta': {'code': status.HTTP_200_OK, 'message': '입력하신 초성키워드에 해당하는 상품 정보입니다'},
+                'data': serializer.data,
+                'next_cursor': next_cursor
+            }
+            return Response(response_data)
+        else:
+            return Response({
+                'meta': {'code': status.HTTP_404_NOT_FOUND, 'message': '입력하신 초성키워드에 해당하는 상품이 존재하지 않습니다'}
+            })
 
 
 class ProductUpdateView(generics.UpdateAPIView):
