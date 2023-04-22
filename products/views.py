@@ -32,7 +32,7 @@ class ProductCreateView(generics.CreateAPIView):
             with transaction.atomic():
                 product = serializer.save()
                 if category_name:
-                    category = Category.objects.get(
+                    category, created = Category.objects.get_or_create(
                         name=category_name)
                     product.category = category
                     product.category_name = category_name
