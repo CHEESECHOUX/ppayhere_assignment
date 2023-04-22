@@ -8,15 +8,17 @@ from django.db.models import CharField, Q
 from django.db import transaction
 from django.http import JsonResponse
 
-from .models import Product, Category, ProductSize
-from .serializers import ProductSerializer
-from .korea_chosung import korea_chosung
+from products.models import Product, Category, ProductSize
+from products.serializers import ProductSerializer
+from products.korea_chosung import korea_chosung
+from users.login_decorator import login_decorator
 
 
 class ProductCreateView(generics.CreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    @login_decorator
     @transaction.atomic
     def post(self, request, *args, **kwargs):
         data = request.data.copy()
@@ -54,7 +56,8 @@ class ProductCreateView(generics.CreateAPIView):
 class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
 
-    def get_queryset(self):
+    @login_decorator
+    def get_queryset(self, request):
         limit = self.request.GET.get('limit', 10)
         cursor = self.request.GET.get('cursor', 0)
 
@@ -65,7 +68,7 @@ class ProductListView(generics.ListAPIView):
         return Product.objects.filter(id__in=product_ids).order_by('id')
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.get_queryset(request)
         serializer = self.get_serializer(queryset, many=True)
 
         if queryset:
@@ -87,6 +90,7 @@ class ProductDetailView(generics.RetrieveAPIView):
     serializer_class = ProductSerializer
     lookup_field = 'pk'
 
+    @login_decorator
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.serializer_class(instance)
@@ -100,7 +104,8 @@ class ProductSearchView(generics.ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-    def get_queryset(self):
+    @login_decorator
+    def get_queryset(self, request):
         cursor = self.request.GET.get('cursor', 0)
         limit = Product.objects.count()
         keyword = self.request.GET.get('keyword', '')
@@ -116,7 +121,7 @@ class ProductSearchView(generics.ListAPIView):
         return Product.objects.filter(id__in=product_ids).order_by('id')
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.get_queryset(request)
         serializer = self.get_serializer(queryset, many=True)
 
         if queryset:
@@ -179,6 +184,7 @@ class ProductUpdateView(generics.UpdateAPIView):
     serializer_class = ProductSerializer
     lookup_field = 'pk'
 
+    @login_decorator
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.serializer_class(
@@ -202,6 +208,7 @@ class ProductDeleteView(generics.DestroyAPIView):
     serializer_class = ProductSerializer
     lookup_field = 'pk'
 
+    @login_decorator
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.delete()
