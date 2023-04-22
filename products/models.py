@@ -18,6 +18,9 @@ class Product(TimeStampModel):
     expiration_date = models.DateTimeField()
     size = models.CharField(max_length=5, choices=[(
         size.name, size.value) for size in ProductSize])
+    category = models.ForeignKey(
+        'Category', on_delete=models.SET_NULL, null=True, blank=True)
+    category_name = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'products'

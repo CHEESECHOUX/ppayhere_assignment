@@ -5,9 +5,10 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from django.db.models.functions import Cast, Substr
 from django.db.models import CharField, Q
+from django.db import transaction
 from django.http import JsonResponse
 
-from .models import Product
+from .models import Product, Category, ProductSize
 from .serializers import ProductSerializer
 from .korea_chosung import korea_chosung
 
@@ -16,21 +17,37 @@ class ProductCreateView(generics.CreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-
+        data = request.data.copy()
+        category_name = data.pop('category_name', None)
+        size = data.get('size', None)
+        if size and size.upper() not in [s.name for s in ProductSize]:
+            return Response({
+                'meta': {'code': status.HTTP_400_BAD_REQUEST, 'message': 'INVALID PRODUCT SIZE'},
+                'data': None
+            })
+        serializer = self.serializer_class(data=data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {
-                    'meta': {'code': status.HTTP_201_CREATED, 'message': '상품 정보가 등록되었습니다'},
-                    'data': serializer.data
-                }
-            )
+            with transaction.atomic():
+                product = serializer.save()
+                if category_name:
+                    category = Category.objects.get(
+                        name=category_name)
+                    product.category = category
+                    product.category_name = category_name
+                    product.save()
+                    product.category_id = category.id
+                return Response(
+                    {
+                        'meta': {'code': status.HTTP_201_CREATED, 'message': '상품 정보가 등록되었습니다'},
+                        'data': serializer.data
+                    }
+                )
         else:
             return Response({
-                'meta': {'code': status.HTTP_400_BAD_REQUEST, 'message': '상품 정보를 다시 확인해주세요'},
-                'data': None
+                'meta': {'code': status.HTTP_400_BAD_REQUEST, 'message': 'INVALID PRODUCT DATA'},
+                'data': serializer.errors
             })
 
 
@@ -92,9 +109,8 @@ class ProductSearchView(generics.ListAPIView):
             return Product.objects.none()
 
         products = Product.objects.filter(
-            reduce(operator.and_, (Q(name__icontains=x)
-                   for x in keyword.split()))
-        ).filter(id__gt=cursor).order_by('id')[:limit]
+            reduce(operator.and_, (Q(name__icontains=x)for x in keyword.split())))\
+            .filter(id__gt=cursor).order_by('id')[:limit]
 
         product_ids = [int(p.id) for p in products]
         return Product.objects.filter(id__in=product_ids).order_by('id')
