@@ -4,6 +4,25 @@ from .models import Product, ProductSize, Category
 
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(max_length=100, required=False)
+
+    class Meta:
+        model = Product
+        fields = [
+            'id',
+            'price',
+            'const',
+            'name',
+            'chosung',
+            'description',
+            'barcode',
+            'expiration_date',
+            'size',
+            'category_name',
+        ]
+
+
+class ProductCreateSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(max_length=100, required=False)
     size = serializers.ChoiceField(
         choices=[(size.name, size.value) for size in ProductSize])
 

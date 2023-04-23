@@ -7,7 +7,7 @@ from django.db.models.functions import Cast
 from django.db.models import CharField, Q
 
 from products.models import Product
-from products.serializers import ProductSerializer
+from products.serializers import ProductSerializer, ProductCreateSerializer
 from products.korea_chosung import get_chosung
 from payhere.utils import list_response
 from users.login_decorator import login_decorator
@@ -15,7 +15,7 @@ from users.login_decorator import login_decorator
 
 class ProductCreateView(generics.CreateAPIView):
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+    serializer_class = ProductCreateSerializer
 
     @login_decorator
     def post(self, request, *args, **kwargs):
@@ -133,7 +133,7 @@ class ProductUpdateView(generics.UpdateAPIView):
     lookup_field = 'pk'
 
     @login_decorator
-    def put(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.serializer_class(
             instance, data=request.data, partial=True)
