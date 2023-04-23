@@ -1,13 +1,12 @@
 from functools import reduce
 import operator
 import re
-from rest_framework import generics, status
+from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from django.db.models.functions import Cast
 from django.db.models import CharField, Q
-from django.db import transaction
 
-from products.models import Product, Category, ProductSize
+from products.models import Product
 from products.serializers import ProductSerializer
 from users.login_decorator import login_decorator
 
@@ -17,41 +16,21 @@ class ProductCreateView(generics.CreateAPIView):
     serializer_class = ProductSerializer
 
     @login_decorator
-    @transaction.atomic
     def post(self, request, *args, **kwargs):
-        data = request.data.copy()
-        user = request.user
-        data['user_id'] = user.id
-        category_name = data.pop('category_name', None)
-        size = data.get('size', None)
-        if size and size.upper() not in [s.name for s in ProductSize]:
-            return Response({
-                'meta': {'code': status.HTTP_400_BAD_REQUEST, 'message': 'INVALID PRODUCT SIZE'},
-                'data': None
-            })
-        serializer = self.serializer_class(data=data)
-        if serializer.is_valid():
-            with transaction.atomic():
-                product = serializer.save()
-                if category_name:
-                    category, created = Category.objects.get_or_create(
-                        name=category_name)
-                    product.category = category
-                    product.category_name = category_name
-                    product.category_id = category.id
-                    product.user_id = user.id
-                    product.save()
-                return Response(
-                    {
-                        'meta': {'code': status.HTTP_201_CREATED, 'message': '상품 정보가 등록되었습니다'},
-                        'data': serializer.data
-                    }
-                )
-        else:
-            return Response({
-                'meta': {'code': status.HTTP_400_BAD_REQUEST, 'message': 'INVALID PRODUCT DATA'},
-                'data': serializer.errors
-            })
+        serializer = self.serializer_class(
+            data=request.data, context={'request': request})
+        try:
+            serializer.is_valid(raise_exception=True)
+            product = serializer.save()
+        except serializers.ValidationError as e:
+            return Response({'error': 'INVALID PRODUCT DATA' + str(e.detail)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {
+                'meta': {'code': status.HTTP_201_CREATED, 'message': '상품 정보가 등록되었습니다'},
+                'data': serializer.data
+            }
+        )
 
 
 class ProductListView(generics.ListAPIView):

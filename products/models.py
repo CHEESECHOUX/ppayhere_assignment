@@ -19,10 +19,10 @@ class Product(TimeStampModel):
     size = models.CharField(max_length=5, choices=[(
         size.name, size.value) for size in ProductSize])
     category = models.ForeignKey(
-        'Category', on_delete=models.SET_NULL, null=True, blank=True)
-    category_name = models.CharField(max_length=50, null=True, blank=True)
+        'Category', on_delete=models.CASCADE)
+    category_name = models.CharField(max_length=50)
     user = models.ForeignKey(
-        'users.User', on_delete=models.SET_NULL, null=True, blank=True)
+        'users.User', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'products'

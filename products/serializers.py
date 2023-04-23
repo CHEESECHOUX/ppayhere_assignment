@@ -26,8 +26,13 @@ class ProductSerializer(serializers.ModelSerializer):
         category_name = validated_data.pop('category_name', None)
         category = None
         if category_name is not None:
-            category = Category.objects.filter(name=category_name).first()
-            if not category:
-                category = Category.objects.create(name=category_name)
+            category, created = Category.objects.get_or_create(
+                name=category_name)
+
         validated_data['category'] = category
-        return super().create(validated_data)
+        validated_data['category_name'] = category_name
+        validated_data['user'] = self.context['request'].user
+
+        product = super().create(validated_data)
+
+        return product
