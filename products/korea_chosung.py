@@ -1,30 +1,18 @@
-JA_LIST = [
-    "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ",
-    "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ",
-    "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ",
-    "ㅋ", "ㅌ", "ㅍ", "ㅎ"
-]
+import re
 
-JAMO_LIST = [
-    "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ",
-    "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ",
-    "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ",
-    "ㅋ", "ㅌ", "ㅍ", "ㅎ",
-    "ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ",
-    "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ",
-    "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ",
-    "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ",
-    "ㅣ"
-]
+CHOSUNG_LIST = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ',
+                'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 
 
-def korea_chosung(text):
-    result = []
-    for ch in text:
-        char_code = ord(ch) - 44032
-        if char_code > -1 and char_code < 11172:
-            idx = char_code // 28 // 21
-            result.append(JA_LIST[idx])
+def get_chosung(word):
+    chosung_word = ''
+    for ch in word:
+        if re.match('.*[ㄱ-ㅎㅏ-ㅣ가-힣]+.*', ch):
+            chosung = ord(ch) - 44032
+            chosung = int(chosung / 588)
+            if chosung < 0 or chosung >= len(CHOSUNG_LIST):
+                return ''
+            chosung_word += CHOSUNG_LIST[chosung]
         else:
-            result.append(ch)
-    return result
+            chosung_word += ch
+    return chosung_word

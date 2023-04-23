@@ -1,6 +1,6 @@
 from functools import reduce
 import operator
-import re
+
 from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from django.db.models.functions import Cast
@@ -8,6 +8,7 @@ from django.db.models import CharField, Q
 
 from products.models import Product
 from products.serializers import ProductSerializer
+from products.korea_chosung import get_chosung
 from users.login_decorator import login_decorator
 
 
@@ -86,8 +87,8 @@ class ProductSearchView(generics.ListAPIView):
 
     @login_decorator
     def get_queryset(self, request):
+        limit = self.request.GET.get('limit', 10)
         cursor = self.request.GET.get('cursor', 0)
-        limit = Product.objects.count()
         keyword = self.request.GET.get('keyword', '')
 
         if not keyword:
@@ -124,28 +125,12 @@ class ProductChosungView(generics.ListAPIView):
 
     @login_decorator
     def get_queryset(self, request):
+        limit = self.request.GET.get('limit', 10)
         cursor = self.request.GET.get('cursor', 0)
-        limit = Product.objects.count()
         keyword = self.request.GET.get('keyword', '')
 
         if not keyword:
             return Product.objects.none()
-
-        CHOSUNG_LIST = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ',
-                        'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
-
-        def get_chosung(word):
-            chosung_word = ''
-            for ch in word:
-                if re.match('.*[ㄱ-ㅎㅏ-ㅣ가-힣]+.*', ch):
-                    chosung = ord(ch) - 44032
-                    chosung = int(chosung / 588)
-                    if chosung < 0 or chosung >= len(CHOSUNG_LIST):
-                        return ''
-                    chosung_word += CHOSUNG_LIST[chosung]
-                else:
-                    chosung_word += ch
-            return chosung_word
 
         keyword_chosung = get_chosung(keyword)
 
