@@ -7,7 +7,7 @@ from django.db.models.functions import Cast
 from django.db.models import CharField, Q
 
 from products.models import Product
-from products.serializers import ProductSerializer
+from products.serializers import ProductSerializer, list_response
 from products.korea_chosung import get_chosung
 from users.login_decorator import login_decorator
 
@@ -52,18 +52,7 @@ class ProductListView(generics.ListAPIView):
         queryset = self.get_queryset(request)
         serializer = self.get_serializer(queryset, many=True)
 
-        if queryset:
-            next_cursor = queryset.last().id
-            response_data = {
-                'meta': {'code': status.HTTP_200_OK, 'message': '상품 정보 리스트입니다'},
-                'data': serializer.data,
-                'next_cursor': next_cursor
-            }
-            return Response(response_data)
-        else:
-            return Response({
-                'meta': {'code': status.HTTP_404_NOT_FOUND, 'message': '404_NOT_FOUND_ERROR'}
-            })
+        return list_response(queryset, serializer)
 
 
 class ProductDetailView(generics.RetrieveAPIView):
@@ -105,18 +94,7 @@ class ProductSearchView(generics.ListAPIView):
         queryset = self.get_queryset(request)
         serializer = self.get_serializer(queryset, many=True)
 
-        if queryset:
-            next_cursor = queryset.last().id
-            response_data = {
-                'meta': {'code': status.HTTP_200_OK, 'message': '입력하신 키워드에 해당하는 상품 정보입니다'},
-                'data': serializer.data,
-                'next_cursor': next_cursor
-            }
-            return Response(response_data)
-        else:
-            return Response({
-                'meta': {'code': status.HTTP_404_NOT_FOUND, 'message': '입력하신 키워드에 해당하는 상품이 존재하지 않습니다'}
-            })
+        return list_response(queryset, serializer)
 
 
 class ProductChosungView(generics.ListAPIView):
@@ -145,18 +123,7 @@ class ProductChosungView(generics.ListAPIView):
         queryset = self.get_queryset(request)
         serializer = self.get_serializer(queryset, many=True)
 
-        if queryset:
-            next_cursor = queryset.last().id
-            response_data = {
-                'meta': {'code': status.HTTP_200_OK, 'message': '입력하신 초성키워드에 해당하는 상품 정보입니다'},
-                'data': serializer.data,
-                'next_cursor': next_cursor
-            }
-            return Response(response_data)
-        else:
-            return Response({
-                'meta': {'code': status.HTTP_404_NOT_FOUND, 'message': '입력하신 초성키워드에 해당하는 상품이 존재하지 않습니다'}
-            })
+        return list_response(queryset, serializer)
 
 
 class ProductUpdateView(generics.UpdateAPIView):
