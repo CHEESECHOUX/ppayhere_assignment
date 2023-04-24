@@ -1,4 +1,6 @@
-Django
-mysqlclient
-PyMySQL
-django-cors-headers
+Django==4.1
+django-cors-headers==3.14.0
+djangorestframework==3.14.0
+mysqlclient==2.1.1
+PyMySQLL==1.0.3
+PyJWT==2.3.0
