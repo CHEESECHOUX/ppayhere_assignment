@@ -1,10 +1,11 @@
+import json
+
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 
 from users.models import User
 from users.validation import phone_validate, password_validate
-import json
 
 
 class SignUpViewTestCase(TestCase):
@@ -35,7 +36,7 @@ class SignUpViewTestCase(TestCase):
     def test_signup_with_invalid_password(self):
         data = {
             'phone': '010-1234-5678',
-            'password': 'jisoo'
+            'password': 'wrong_password'
         }
         with self.assertRaises(ValidationError) as context:
             password_validate(data['password'])
