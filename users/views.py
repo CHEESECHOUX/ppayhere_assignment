@@ -52,6 +52,11 @@ class LoginView(View):
 
             hashed_password = user.password.encode('utf-8')
             access_token = jwt.encode(
+                {'id': user.id, 'exp': datetime.utcnow() + timedelta(days=1)},
+                settings.SECRET_KEY,
+                algorithm=settings.ALGORITHM
+            )
+            refresh_token = jwt.encode(
                 {'id': user.id, 'exp': datetime.utcnow() + timedelta(weeks=1)},
                 settings.SECRET_KEY,
                 algorithm=settings.ALGORITHM
@@ -60,7 +65,7 @@ class LoginView(View):
             if not bcrypt.checkpw(data['password'].encode('utf-8'), hashed_password):
                 return JsonResponse({'meta': {'code': 401, 'message': '비밀번호를 다시 입력해주세요'}})
 
-            return JsonResponse({'meta': {'code': 200, 'message': '로그인 성공', 'token': access_token}, 'data': data})
+            return JsonResponse({'meta': {'code': 200, 'message': '로그인 성공', 'access_token': access_token, 'refresh_token': refresh_token}, 'data': data})
 
         except User.DoesNotExist:
             return JsonResponse({'meta': {'code': 404, 'message': '사용자가 존재하지 않습니다'}})
