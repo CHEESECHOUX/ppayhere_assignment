@@ -20,7 +20,6 @@ class Product(TimeStampModel):
         size.name, size.value) for size in ProductSize])
     category = models.ForeignKey(
         'Category', on_delete=models.CASCADE)
-    category_name = models.CharField(max_length=50)
     user = models.ForeignKey(
         'users.User', on_delete=models.CASCADE)
 

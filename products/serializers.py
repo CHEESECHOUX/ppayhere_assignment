@@ -38,7 +38,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             'barcode',
             'expiration_date',
             'size',
-            'category_name',
+            'category_name'
         ]
 
     def create(self, validated_data):
@@ -49,7 +49,6 @@ class ProductCreateSerializer(serializers.ModelSerializer):
                 name=category_name)
 
         validated_data['category'] = category
-        validated_data['category_name'] = category_name
         validated_data['user'] = self.context['request'].user
 
         product = super().create(validated_data)
