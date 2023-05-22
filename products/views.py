@@ -57,7 +57,6 @@ class ProductListView(generics.ListAPIView):
 
 
 class ProductDetailView(generics.RetrieveAPIView):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     lookup_field = 'pk'
 
@@ -66,9 +65,22 @@ class ProductDetailView(generics.RetrieveAPIView):
         instance = self.get_object()
         serializer = self.serializer_class(instance)
         return Response({
-            'meta': {'code': status.HTTP_200_OK, 'message': '입력하신 id값에 해당하는 상품 정보입니다'},
+            'meta': {'code': status.HTTP_200_OK, 'message': '입력하신 카테고리, id값에 해당하는 상품 정보입니다'},
             'data': serializer.data
         })
+
+    def get_queryset(self):
+        queryset = Product.objects.all()
+
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+
+        id = self.request.query_params.get('id')
+        if id:
+            queryset = queryset.filter(id=id)
+
+        return queryset
 
 
 class ProductSearchView(generics.ListAPIView):
@@ -83,6 +95,8 @@ class ProductSearchView(generics.ListAPIView):
 
         if not keyword:
             return Product.objects.none()
+
+        keyword_all = get_chosung(keyword)
 
         products = Product.objects.filter(
             reduce(operator.and_, (Q(name__icontains=x)for x in keyword.split())))\
