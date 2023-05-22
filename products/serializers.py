@@ -25,6 +25,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(max_length=100, required=False)
     size = serializers.ChoiceField(
         choices=[(size.name, size.value) for size in ProductSize])
+    chosung = serializers.CharField(max_length=100, required=False)
 
     class Meta:
         model = Product

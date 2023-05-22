@@ -23,6 +23,10 @@ class ProductCreateView(generics.CreateAPIView):
             data=request.data, context={'request': request})
         try:
             serializer.is_valid(raise_exception=True)
+            validated_data = serializer.validated_data
+            name = validated_data.get('name', '')
+            chosung = get_chosung(name)
+            validated_data['chosung'] = chosung
             product = serializer.save()
         except serializers.ValidationError as e:
             return Response({'error': 'INVALID PRODUCT DATA' + str(e.detail)}, status=status.HTTP_400_BAD_REQUEST)
