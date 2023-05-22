@@ -100,39 +100,8 @@ class ProductSearchView(generics.ListAPIView):
         if not keyword:
             return Product.objects.none()
 
-        keyword_all = get_chosung(keyword)
-
         products = Product.objects.filter(
-            reduce(operator.and_, (Q(name__icontains=x)for x in keyword.split())))\
-            .filter(id__gt=cursor).order_by('id')[:limit]
-
-        product_ids = [int(p.id) for p in products]
-        return Product.objects.filter(id__in=product_ids).order_by('id')
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset(request)
-        serializer = self.get_serializer(queryset, many=True)
-
-        return list_response(queryset, serializer)
-
-
-class ProductChosungView(generics.ListAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-
-    @login_decorator
-    def get_queryset(self, request):
-        limit = self.request.GET.get('limit', 10)
-        cursor = self.request.GET.get('cursor', 0)
-        keyword = self.request.GET.get('keyword', '')
-
-        if not keyword:
-            return Product.objects.none()
-
-        keyword_chosung = get_chosung(keyword)
-
-        products = Product.objects.filter(
-            reduce(operator.and_, (Q(chosung__icontains=x)for x in keyword.split())))\
+            reduce(operator.or_, (Q(name__icontains=x) | Q(chosung__icontains=x)for x in keyword.split())))\
             .filter(id__gt=cursor).order_by('id')[:limit]
 
         product_ids = [int(p.id) for p in products]
