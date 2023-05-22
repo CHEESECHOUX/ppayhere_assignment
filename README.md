@@ -23,8 +23,7 @@
 |상품 생성|/products/create|POST|
 |상품 리스트 가져오기|/products/list|GET|
 |해당 상품 정보 가져오기|/products/detail/{product_id}|GET|
-|상품 단어 검색|/products/search|GET|
-|상품 초성 검색|/products/chosung|GET|
+|상품 단어, 초성 검색|/products/search|GET|
 |상품 부분 수정|/products/update/{product_id}|PATCH|
 |상품 삭제|/products/delete/{product_id}|DELETE|
 <br/>
