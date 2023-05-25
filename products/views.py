@@ -69,22 +69,9 @@ class ProductDetailView(generics.RetrieveAPIView):
         instance = self.get_object()
         serializer = self.serializer_class(instance)
         return Response({
-            'meta': {'code': status.HTTP_200_OK, 'message': '입력하신 카테고리, id값에 해당하는 상품 정보입니다'},
+            'meta': {'code': status.HTTP_200_OK, 'message': '입력하신 id값에 해당하는 상품 정보입니다'},
             'data': serializer.data
         })
-
-    def get_queryset(self):
-        queryset = Product.objects.all()
-
-        category = self.request.query_params.get('category')
-        if category:
-            queryset = queryset.filter(category=category)
-
-        id = self.request.query_params.get('id')
-        if id:
-            queryset = queryset.filter(id=id)
-
-        return queryset
 
 
 class ProductSearchView(generics.ListAPIView):
